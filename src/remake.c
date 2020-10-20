@@ -233,6 +233,10 @@ update_goal_chain (struct goaldep *goaldeps)
               else
                 lastgoal->next = g->next;
 
+              /* Output graph if goal has changed and if requested */
+              if (g->changed && output_graph_flag)
+                output_graph_file (dep_name(g));
+
               /* Free the storage.  */
               free (g);
 

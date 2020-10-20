@@ -1199,4 +1199,126 @@ init_hash_files (void)
   hash_init (&files, 1000, file_hash_1, file_hash_2, file_hash_cmp);
 }
 
+static const char *
+get_edge_label (const struct file *file)
+{
+  if (file->last_mtime == NONEXISTENT_MTIME)
+    {
+      if (file->phony)
+        return "[label=\"forced: PHONY prerequisite\"]";
+
+      return "[label=\"forced: non-existent file\"]";
+    }
+  return "";
+}
+
+static int
+add_edge (const struct file *parent, const struct file *child, FILE *fp)
+{
+  return fprintf (fp, "\"%s\" -> \"%s\" %s\n",
+                  parent->name, child->name, get_edge_label (child));
+}
+
+static enum update_status
+output_graph_node (const void *item, FILE *fp)
+{
+  int n;
+  int dep_updated;
+  const struct file *file = item;
+
+  if (!file->updated)
+    return us_none;
+
+  if (file->deps)
+    {
+      struct dep *d;
+      dep_updated = 0;
+      for (d = file->deps; d != 0; d = d->next)
+        {
+            enum update_status status = output_graph_node (d->file, fp);
+            if (status == us_failed)
+              return us_failed;
+            if (status == us_success)
+              {
+                dep_updated = 1;
+                if (add_edge (file, d->file, fp) < 0)
+                  return us_failed;
+              }
+        }
+    }
+
+  /* We only want to include the files that actually changed during
+     the updating of this goal. But we make an exception for non-existent
+     files, as they are a clue as to why something was rebuilt.
+
+     And we also make exception if the file has dependencies that have updated.
+  */
+
+ if (!file->deps || dep_updated == 0)
+  {
+    if (file->last_mtime != NONEXISTENT_MTIME)
+      if (file->last_mtime == file->mtime_before_update) {
+        return us_none;
+      }
+  }
+
+  /* Special case for single target goals */
+  if (!file->parent && !file->deps)
+  {
+      n = fprintf (fp, "\"%s\"\n", file->name);
+      if (n < 0)
+        return us_failed;
+   }
+
+  return us_success;
+}
+
+
+/* Traverse the dependency graph for a goal and output it in the
+   Graphviz (dot) syntax.
+
+   Only targets that have been updated (last_mtime != mtime_before_update)
+   will be included in the graph.
+*/
+
+void
+output_graph_file (const char *goal)
+{
+  FILE *fp;
+  struct file *root;
+  char dot_fname[PATH_MAX + FILENAME_MAX + 1];
+
+  /* Make sure we always save the graph file in the starting directory */
+  sprintf (dot_fname, "%s/%s.dot", starting_directory, goal);
+  OS (message, 1, "Writing dependency graph to '%s'", dot_fname);
+
+  fp = fopen (dot_fname, "w");
+  if (!fp)
+    {
+      OS (error, NILF, _("Failed to open to graph file: %s"), strerror (errno));
+      goto out;
+    }
+  if (fprintf (fp, "strict digraph \"%s\" {\n", goal) < 0)
+    {
+      OS (error, NILF, _("Failed to write to graph file: %s"), strerror (errno));
+      goto out;
+    }
+
+  root = lookup_file (goal);
+  if (!root)
+    goto out;
+
+  if (output_graph_node (root, fp) == us_failed)
+    {
+      OS (error, NILF, _("Failed to write to graph file: %s"), strerror (errno));
+      goto out;
+    }
+
+  if (fprintf (fp, "}\n") < 0)
+    OS (error, NILF, _("Failed to write to graph file: %s"), strerror (errno));
+
+out:
+  fclose (fp);
+}
+
 /* EOF */

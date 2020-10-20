@@ -239,6 +239,8 @@ int print_version_flag = 0;
 
 static struct stringlist *makefiles = 0;
 
+int output_graph_flag = 0;
+
 /* Size of the stack when we started.  */
 
 #ifdef SET_STACK_SIZE
@@ -350,6 +352,8 @@ static const char *const usage[] =
   -f FILE, --file=FILE, --makefile=FILE\n\
                               Read FILE as a makefile.\n"),
     N_("\
+  -g, --output-graph          Output (dot) graph of modified targets for each goal.\n"),
+    N_("\
   -h, --help                  Print this message and exit.\n"),
     N_("\
   -i, --ignore-errors         Ignore errors from recipes.\n"),
@@ -418,6 +422,7 @@ static const struct command_switch switches[] =
     { 'd', flag, &debug_flag, 1, 1, 0, 0, 0, 0 },
     { 'e', flag, &env_overrides, 1, 1, 0, 0, 0, "environment-overrides", },
     { 'E', strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
+    { 'g', flag, &output_graph_flag, 0, 0, 0, 0, 0, "output-graph" },
     { 'h', flag, &print_usage_flag, 0, 0, 0, 0, 0, "help" },
     { 'i', flag, &ignore_errors_flag, 1, 1, 0, 0, 0, "ignore-errors" },
     { 'k', flag, &keep_going_flag, 1, 1, 0, 0, &default_keep_going_flag,

@@ -8925,6 +8925,15 @@ been defined, but before any makefiles are read.
 Read the file named @var{file} as a makefile.
 @xref{Makefiles, ,Writing Makefiles}.
 
+@item -g
+@cindex @code{-g}
+@itemx --output-graph
+@cindex @code{--output-graph}
+Output build dependency graph for updated make goals. The graph is
+written to a file called @code{[goal].dot} and is represented using
+the Graphvis (dot) syntax. Only targets that have been updated is
+present in the graph.
+
 @item -h
 @cindex @code{-h}
 @itemx --help

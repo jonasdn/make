@@ -110,6 +110,7 @@ struct file
 
 extern struct file *default_file;
 
+extern int output_graph_flag;
 
 struct file *lookup_file (const char *name);
 struct file *enter_file (const char *name);
@@ -129,6 +130,7 @@ void print_prereqs (const struct dep *deps);
 void print_file_data_base (void);
 int try_implicit_rule (struct file *file, unsigned int depth);
 int stemlen_compare (const void *v1, const void *v2);
+void output_graph_file (const char *goal);
 
 #if FILE_TIMESTAMP_HI_RES
 # define FILE_TIMESTAMP_STAT_MODTIME(fname, st) \

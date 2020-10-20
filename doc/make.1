@@ -160,6 +160,12 @@ Use
 .I file
 as a makefile.
 .TP 0.5i
+\fB\-g\fR, \fB\-\-output\-graph\fR
+Output build dependency graph for updated make goals. The graph is
+written to a file called
+.I [goal].dot
+and is represented using the Graphvis (dot) syntax. Only targets that
+have been updated is present in the graph.
 \fB\-i\fR, \fB\-\-ignore\-errors\fR
 Ignore all errors in commands executed to remake files.
 .TP 0.5i
